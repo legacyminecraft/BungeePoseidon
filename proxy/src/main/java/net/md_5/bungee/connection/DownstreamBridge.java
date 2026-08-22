@@ -7,15 +7,12 @@ import net.md_5.bungee.UserConnection;
 import net.md_5.bungee.Util;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.event.ServerKickEvent;
 import net.md_5.bungee.netty.ChannelWrapper;
 import net.md_5.bungee.netty.PacketHandler;
 import net.md_5.bungee.netty.PacketWrapper;
-import net.md_5.bungee.protocol.packet.PacketFAPluginMessage;
 import net.md_5.bungee.protocol.packet.PacketFFKick;
 
-import java.io.DataInput;
 import java.util.Objects;
 
 @RequiredArgsConstructor
@@ -55,16 +52,6 @@ public class DownstreamBridge extends PacketHandler {
         if (!server.isObsolete()) {
             EntityMap.rewrite(packet.buf, con.getServerEntityId(), con.getClientEntityId());
             con.sendPacket(packet);
-        }
-    }
-
-    @Override
-    public void handle(PacketFAPluginMessage pluginMessage) throws Exception {
-        DataInput in = pluginMessage.getStream();
-        PluginMessageEvent event = new PluginMessageEvent(con.getServer(), con, pluginMessage.getTag(), pluginMessage.getData().clone());
-
-        if (bungee.getPluginManager().callEvent(event).isCancelled()) {
-            throw new CancelSendSignal();
         }
     }
 

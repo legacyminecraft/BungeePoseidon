@@ -26,14 +26,6 @@ public interface ProxiedPlayer extends Connection, CommandSender {
     Server getServer();
 
     /**
-     * Send a plugin message to this player.
-     *
-     * @param channel the channel to send this data via
-     * @param data the data to send
-     */
-    void sendData(String channel, byte[] data);
-
-    /**
      * Get the pending connection that belongs to this player.
      *
      * @return the pending connection that this player used

@@ -6,7 +6,6 @@ import lombok.Setter;
 import net.md_5.bungee.api.connection.Server;
 import net.md_5.bungee.netty.ChannelWrapper;
 import net.md_5.bungee.protocol.packet.DefinedPacket;
-import net.md_5.bungee.protocol.packet.PacketFAPluginMessage;
 import net.md_5.bungee.protocol.packet.PacketFFKick;
 
 import java.net.InetSocketAddress;
@@ -28,11 +27,6 @@ public class ServerConnection implements Server {
             ch.write(packet);
         }
     };
-
-    @Override
-    public void sendData(String channel, byte[] data) {
-        unsafe().sendPacket(new PacketFAPluginMessage(channel, data));
-    }
 
     @Override
     public synchronized void disconnect(String reason) {

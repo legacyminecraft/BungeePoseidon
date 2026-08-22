@@ -24,13 +24,10 @@ import net.md_5.bungee.protocol.Vanilla;
 import net.md_5.bungee.protocol.packet.DefinedPacket;
 import net.md_5.bungee.protocol.packet.Packet1Login;
 import net.md_5.bungee.protocol.packet.Packet2Handshake;
-import net.md_5.bungee.protocol.packet.PacketFAPluginMessage;
 import net.md_5.bungee.protocol.packet.PacketFFKick;
 
 import java.net.InetSocketAddress;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 
@@ -47,10 +44,6 @@ public class InitialHandler extends PacketHandler implements PendingConnection {
     private Packet2Handshake handshake;
     @Getter
     private Packet1Login login;
-    @Getter
-    private List<PacketFAPluginMessage> loginMessages = new ArrayList<>();
-    @Getter
-    private List<PacketFAPluginMessage> registerMessages = new ArrayList<>();
     @Getter
     private State thisState = State.HANDSHAKE;
     private final Unsafe unsafe = new Unsafe() {
@@ -75,16 +68,6 @@ public class InitialHandler extends PacketHandler implements PendingConnection {
     @Override
     public void exception(Throwable t) throws Exception {
         disconnect(ChatColor.RED + Util.exception(t));
-    }
-
-    @Override
-    public void handle(PacketFAPluginMessage pluginMessage) throws Exception {
-        // TODO: Unregister?
-        if (pluginMessage.getTag().equals("REGISTER")) {
-            registerMessages.add(pluginMessage);
-        } else {
-            loginMessages.add(pluginMessage);
-        }
     }
 
     @Override

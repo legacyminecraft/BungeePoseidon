@@ -39,7 +39,6 @@ public class ServerConnector extends PacketHandler {
     private final UserConnection user;
     private final BungeeServerInfo target;
     private State thisState = State.LOGIN;
-    private boolean sentMessages;
 
     private enum State {
         LOGIN, FINISHED
@@ -92,7 +91,7 @@ public class ServerConnector extends PacketHandler {
         output.writeShort(signature.length);
         output.write(signature);
 
-        ch.write(new PacketFAPluginMessage("proxy#hello", output.toByteArray()));
+        ch.write(new PacketFAPluginMessage("proxy_hello", output.toByteArray()));
     }
 
     @Override
@@ -107,16 +106,6 @@ public class ServerConnector extends PacketHandler {
         ServerConnection server = new ServerConnection(ch, target);
         ServerConnectedEvent event = new ServerConnectedEvent(user, server);
         bungee.getPluginManager().callEvent(event);
-
-        //ch.write(BungeeCord.getInstance().registerChannels()); // TODO
-        for (PacketFAPluginMessage message : user.getPendingConnection().getRegisterMessages()) {
-            ch.write(message);
-        }
-        if (!sentMessages) {
-            for (PacketFAPluginMessage message : user.getPendingConnection().getLoginMessages()) {
-                ch.write(message);
-            }
-        }
 
         synchronized (user.getSwitchMutex()) {
             // Once again, first connection

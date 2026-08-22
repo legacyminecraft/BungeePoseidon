@@ -13,7 +13,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.util.ResourceLeakDetector;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.Synchronized;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.ReconnectHandler;
@@ -42,7 +41,6 @@ import net.md_5.bungee.netty.PipelineUtils;
 import net.md_5.bungee.protocol.Vanilla;
 import net.md_5.bungee.protocol.packet.DefinedPacket;
 import net.md_5.bungee.protocol.packet.Packet3Chat;
-import net.md_5.bungee.protocol.packet.PacketFAPluginMessage;
 import net.md_5.bungee.reconnect.YamlReconnectHandler;
 import net.md_5.bungee.scheduler.BungeeScheduler;
 import net.md_5.bungee.util.CaseInsensitiveMap;
@@ -60,7 +58,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.MissingResourceException;
@@ -119,7 +116,6 @@ public class BungeeCord extends ProxyServer {
     @Getter
     @Setter
     private ConfigurationAdapter configurationAdapter = new YamlConfig();
-    private final Collection<String> pluginChannels = new HashSet<>();
     @Getter
     private final File pluginsFolder = new File("plugins");
     @Getter
@@ -146,8 +142,6 @@ public class BungeeCord extends ProxyServer {
         getPluginManager().registerCommand(null, new CommandPerms());
         getPluginManager().registerCommand(null, new CommandSend());
         getPluginManager().registerCommand(null, new CommandFind());
-
-        registerChannel("BungeeCord");
     }
 
     public static BungeeCord getInstance() {
@@ -372,28 +366,6 @@ public class BungeeCord extends ProxyServer {
     @Override
     public ServerInfo getServerInfo(String name) {
         return getServers().get(name);
-    }
-
-    @Override
-    @Synchronized("pluginChannels")
-    public void registerChannel(String channel) {
-        pluginChannels.add(channel);
-    }
-
-    @Override
-    @Synchronized("pluginChannels")
-    public void unregisterChannel(String channel) {
-        pluginChannels.remove(channel);
-    }
-
-    @Override
-    @Synchronized("pluginChannels")
-    public Collection<String> getChannels() {
-        return Collections.unmodifiableCollection(pluginChannels);
-    }
-
-    public PacketFAPluginMessage registerChannels() {
-        return new PacketFAPluginMessage("REGISTER", Util.format(pluginChannels, "\00").getBytes());
     }
 
     @Override

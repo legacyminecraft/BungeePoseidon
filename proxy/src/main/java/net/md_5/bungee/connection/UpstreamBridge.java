@@ -7,7 +7,6 @@ import net.md_5.bungee.Util;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.event.ChatEvent;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
-import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.netty.ChannelWrapper;
 import net.md_5.bungee.netty.PacketHandler;
 import net.md_5.bungee.netty.PacketWrapper;
@@ -24,7 +23,6 @@ public class UpstreamBridge extends PacketHandler {
         this.con = con;
 
         BungeeCord.getInstance().addConnection(con);
-        //con.unsafe().sendPacket(BungeeCord.getInstance().registerChannels()); // TODO
     }
 
     @Override
@@ -65,19 +63,9 @@ public class UpstreamBridge extends PacketHandler {
     }
 
     @Override
-    public void handle(PacketFAPluginMessage pluginMessage) throws Exception {
-        if (pluginMessage.getTag().equals("BungeeCord")) {
+    public void handle(PacketFAPluginMessage pluginMessage) {
+        if (pluginMessage.getTag().equals("proxy_hello")) {
             throw new CancelSendSignal();
-        }
-
-        PluginMessageEvent event = new PluginMessageEvent(con, con.getServer(), pluginMessage.getTag(), pluginMessage.getData().clone());
-        if (bungee.getPluginManager().callEvent(event).isCancelled()) {
-            throw new CancelSendSignal();
-        }
-
-        // TODO: Unregister as well?
-        if (pluginMessage.getTag().equals("REGISTER")) {
-            con.getPendingConnection().getRegisterMessages().add(pluginMessage);
         }
     }
 

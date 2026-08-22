@@ -5,10 +5,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInput;
-import java.io.DataInputStream;
-
 @Getter
 @ToString
 @EqualsAndHashCode(callSuper = false)
@@ -42,9 +38,5 @@ public class PacketFAPluginMessage extends DefinedPacket {
     @Override
     public void handle(AbstractPacketHandler handler) throws Exception {
         handler.handle(this);
-    }
-
-    public DataInput getStream() {
-        return new DataInputStream(new ByteArrayInputStream(data));
     }
 }
