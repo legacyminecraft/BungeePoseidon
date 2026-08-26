@@ -42,4 +42,4 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-artifact
-          path: bootstrap/target/bungeeposeidon-bootstrap-*.jar
+          path: bootstrap/target/bungeeposeidon-bootstrap-*-shaded.jar
