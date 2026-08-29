@@ -65,7 +65,7 @@ public class Vanilla implements Protocol {
     public DefinedPacket read(short packetId, ByteBuf buf) {
         int start = buf.readerIndex();
         DefinedPacket packet = read(packetId, buf, this);
-        if (buf.readerIndex() == start) {
+        if (buf.readerIndex() == start && packetId != 0) {
             throw new BadPacketException("Unknown packet id " + packetId);
         }
         return packet;
