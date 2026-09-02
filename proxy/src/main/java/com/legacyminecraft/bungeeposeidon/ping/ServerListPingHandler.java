@@ -80,9 +80,7 @@ public final class ServerListPingHandler {
                 this.listener.getMotd(),
                 BungeeCord.getInstance().getServerIcon());
 
-        if (BungeeCord.getInstance().config.isSendPlayerSample()) {
-            event.getPlayerSample().addAll(createSample(onlinePlayers));
-        }
+        event.getPlayerSample().addAll(createSample(onlinePlayers));
         BungeeCord.getInstance().getPluginManager().callEvent(event);
         if (event.isCancelled()) {
             this.closed = true;
@@ -110,8 +108,12 @@ public final class ServerListPingHandler {
         this.closed = true;
     }
 
-    private static List<PlayerProfile> createSample(ProxiedPlayer[] onlinePlayers) {
-        int sampleSize = Math.min(onlinePlayers.length, BungeeCord.getInstance().config.getMaxSampleSize());
+    private List<PlayerProfile> createSample(ProxiedPlayer[] onlinePlayers) {
+        int sampleSize = Math.min(onlinePlayers.length, this.listener.getMaxSampleSize());
+        if (sampleSize <= 0) {
+            return List.of();
+        }
+
         List<PlayerProfile> sample = new ObjectArrayList<>();
         int offset = RANDOM.nextInt(onlinePlayers.length - sampleSize + 1);
 

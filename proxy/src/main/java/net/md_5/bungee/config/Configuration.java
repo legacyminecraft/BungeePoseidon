@@ -38,8 +38,6 @@ public class Configuration {
     private int playerLimit = -1;
     private Collection<String> disabledCommands;
     private int throttle = 4000;
-    private boolean sendPlayerSample = true;
-    private int maxSampleSize = 10;
 
     public void load() {
         ConfigurationAdapter adapter = ProxyServer.getInstance().getConfigurationAdapter();
@@ -50,8 +48,6 @@ public class Configuration {
         onlineMode = adapter.getBoolean("online_mode", onlineMode);
         playerLimit = adapter.getInt("player_limit", playerLimit);
         throttle = adapter.getInt("connection_throttle", throttle);
-        sendPlayerSample = adapter.getBoolean("send_player_sample", sendPlayerSample);
-        maxSampleSize = adapter.getInt("max_sample_size", maxSampleSize);
 
         disabledCommands = new CaseInsensitiveSet((Collection<String>) adapter.getList("disabled_commands", Arrays.asList("find")));
 

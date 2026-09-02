@@ -24,6 +24,10 @@ public class ListenerInfo {
      */
     private final int maxPlayers;
     /**
+     * Max amount of players included in the ping player sample.
+     */
+    private final int maxSampleSize;
+    /**
      * Name of the server which users will be taken to by default.
      */
     private final String defaultServer;

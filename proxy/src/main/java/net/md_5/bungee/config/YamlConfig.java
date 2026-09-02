@@ -158,6 +158,7 @@ public class YamlConfig implements ConfigurationAdapter {
             motd = ChatColor.translateAlternateColorCodes('&', motd);
 
             int maxPlayers = get("max_players", 1, val);
+            int maxSampleSize = get("max_sample_size", 0, val);
             String defaultServer = get("default_server", "lobby", val);
             String fallbackServer = get("fallback_server", defaultServer, val);
             boolean forceDefault = get("force_default_server", false, val);
@@ -165,7 +166,7 @@ public class YamlConfig implements ConfigurationAdapter {
             InetSocketAddress address = Util.getAddr(host);
             boolean setLocalAddress = get("bind_local_address", true, val);
 
-            ListenerInfo info = new ListenerInfo(address, motd, maxPlayers, defaultServer, fallbackServer, forceDefault, setLocalAddress);
+            ListenerInfo info = new ListenerInfo(address, motd, maxPlayers, maxSampleSize, defaultServer, fallbackServer, forceDefault, setLocalAddress);
             ret.add(info);
         }
 
