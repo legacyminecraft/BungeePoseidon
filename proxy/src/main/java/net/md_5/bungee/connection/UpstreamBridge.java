@@ -8,6 +8,7 @@ import net.md_5.bungee.Util;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.event.ChatEvent;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
+import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.netty.ChannelWrapper;
 import net.md_5.bungee.netty.PacketHandler;
 import net.md_5.bungee.netty.PacketWrapper;
@@ -66,6 +67,11 @@ public class UpstreamBridge extends PacketHandler {
     @Override
     public void handle(PacketFAPluginMessage pluginMessage) {
         if (pluginMessage.getTag().equals(PlayerDataForwarding.CHANNEL)) {
+            throw new CancelSendSignal();
+        }
+
+        PluginMessageEvent event = new PluginMessageEvent(con, con.getServer(), pluginMessage.getTag(), pluginMessage.getData().clone());
+        if (bungee.getPluginManager().callEvent(event).isCancelled()) {
             throw new CancelSendSignal();
         }
     }
