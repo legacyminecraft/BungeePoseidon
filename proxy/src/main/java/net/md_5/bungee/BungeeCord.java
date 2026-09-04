@@ -4,6 +4,10 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.legacyminecraft.bungeeposeidon.BungeeBuildInformation;
 import com.legacyminecraft.bungeeposeidon.api.ping.ServerIcon;
 import com.legacyminecraft.bungeeposeidon.api.util.TextWrapper;
+import com.legacyminecraft.bungeeposeidon.profile.ProfileCache;
+import com.legacyminecraft.bungeeposeidon.profile.ProfileService;
+import com.legacyminecraft.bungeeposeidon.service.ServiceClient;
+import com.legacyminecraft.bungeeposeidon.session.SessionService;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelException;
@@ -128,6 +132,14 @@ public class BungeeCord extends ProxyServer {
     private ConnectionThrottle connectionThrottle;
     @Getter
     private @Nullable ServerIcon serverIcon;
+    @Getter
+    private final ServiceClient serviceClient = new ServiceClient();
+    @Getter
+    private final SessionService sessionService = new SessionService(this.serviceClient);
+    @Getter
+    private final ProfileService profileService = new ProfileService(this.serviceClient);
+    @Getter
+    private final ProfileCache profileCache = new ProfileCache();
 
 
     {
@@ -188,8 +200,8 @@ public class BungeeCord extends ProxyServer {
         }
         isRunning = true;
 
+        profileCache.load();
         pluginManager.loadAndEnablePlugins();
-
         connectionThrottle = new ConnectionThrottle(config.getThrottle());
         startListeners();
 
@@ -285,7 +297,8 @@ public class BungeeCord extends ProxyServer {
                 }
 
                 scheduler.shutdown();
-                getLogger().info("Thankyou and goodbye");
+                profileCache.save();
+                getLogger().info("Thank you and goodbye");
                 System.exit(0);
             }
         }.start();

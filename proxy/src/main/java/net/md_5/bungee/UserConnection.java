@@ -1,6 +1,8 @@
 package net.md_5.bungee;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
+import com.legacyminecraft.bungeeposeidon.api.profile.PlayerProfile;
 import com.legacyminecraft.bungeeposeidon.api.util.TextWrapper;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -33,6 +35,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.logging.Level;
 
 @RequiredArgsConstructor
@@ -45,7 +48,7 @@ public final class UserConnection implements ProxiedPlayer {
     private final ChannelWrapper ch;
     @Getter
     @NonNull
-    private final String name;
+    private final PlayerProfile profile;
     @Getter
     private final InitialHandler pendingConnection;
     /*========================================================================*/
@@ -79,7 +82,7 @@ public final class UserConnection implements ProxiedPlayer {
     };
 
     public void init() {
-        Collection<String> g = bungee.getConfigurationAdapter().getGroups(name);
+        Collection<String> g = bungee.getConfigurationAdapter().getGroups(getName());
         for (String s : g) {
             addGroups(s);
         }
@@ -198,6 +201,21 @@ public final class UserConnection implements ProxiedPlayer {
     }
 
     @Override
+    public String getName() {
+        return this.profile.getName();
+    }
+
+    @Override
+    public UUID getUniqueId() {
+        return this.profile.getUniqueId();
+    }
+
+    @Override
+    public PlayerProfile getPlayerProfile() {
+        return this.profile;
+    }
+
+    @Override
     public InetSocketAddress getAddress() {
         return (InetSocketAddress) ch.getHandle().remoteAddress();
     }
@@ -243,7 +261,10 @@ public final class UserConnection implements ProxiedPlayer {
 
     @Override
     public String toString() {
-        return name;
+        return MoreObjects.toStringHelper(this)
+                .add("id", this.profile.getUniqueId())
+                .add("name", this.profile.getName())
+                .toString();
     }
 
     @Override

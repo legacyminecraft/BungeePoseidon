@@ -24,13 +24,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import java.util.UUID;
 
 public final class ServerListPingHandler {
 
     private static final Random RANDOM = new Random();
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
-    private static final UUID NIL_UUID = new UUID(0L, 0L);
 
     private final ListenerInfo listener;
     private final InetSocketAddress clientAddress;
@@ -119,7 +117,7 @@ public final class ServerListPingHandler {
 
         for (int i = 0; i < sampleSize; i++) {
             ProxiedPlayer player = onlinePlayers[offset + i];
-            sample.add(new InternalPlayerProfile(player.getName()));
+            sample.add(player.getPlayerProfile());
         }
 
         Collections.shuffle(sample);
@@ -195,23 +193,5 @@ public final class ServerListPingHandler {
         byte[] bytes = string.getBytes(StandardCharsets.UTF_8);
         writeVarInt(bytes.length, output);
         output.write(bytes);
-    }
-
-    // TODO: rework when a proper profile api is added
-    private record InternalPlayerProfile(String name) implements PlayerProfile {
-        @Override
-        public @Nullable String getName() {
-            return name();
-        }
-
-        @Override
-        public UUID getUniqueId() {
-            return NIL_UUID;
-        }
-
-        @Override
-        public boolean isOnlineProfile() {
-            return false;
-        }
     }
 }

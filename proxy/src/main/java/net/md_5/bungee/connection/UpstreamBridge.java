@@ -1,5 +1,6 @@
 package net.md_5.bungee.connection;
 
+import com.legacyminecraft.bungeeposeidon.forwarding.PlayerDataForwarding;
 import net.md_5.bungee.BungeeCord;
 import net.md_5.bungee.EntityMap;
 import net.md_5.bungee.UserConnection;
@@ -64,7 +65,7 @@ public class UpstreamBridge extends PacketHandler {
 
     @Override
     public void handle(PacketFAPluginMessage pluginMessage) {
-        if (pluginMessage.getTag().equals("proxy_hello")) {
+        if (pluginMessage.getTag().equals(PlayerDataForwarding.CHANNEL)) {
             throw new CancelSendSignal();
         }
     }

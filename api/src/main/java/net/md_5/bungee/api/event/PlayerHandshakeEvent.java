@@ -1,11 +1,11 @@
 package net.md_5.bungee.api.event;
 
+import com.legacyminecraft.bungeeposeidon.api.profile.PlayerProfile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.plugin.Event;
-import net.md_5.bungee.protocol.packet.Packet2Handshake;
 
 /**
  * Event called to represent a player first making their presence and username
@@ -21,12 +21,12 @@ public class PlayerHandshakeEvent extends Event {
      */
     private final PendingConnection connection;
     /**
-     * The handshake.
+     * The player profile.
      */
-    private final Packet2Handshake handshake;
+    private final PlayerProfile profile;
 
-    public PlayerHandshakeEvent(PendingConnection connection, Packet2Handshake handshake) {
+    public PlayerHandshakeEvent(PendingConnection connection, PlayerProfile profile) {
         this.connection = connection;
-        this.handshake = handshake;
+        this.profile = profile;
     }
 }

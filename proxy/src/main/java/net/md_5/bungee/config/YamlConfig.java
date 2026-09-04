@@ -6,7 +6,6 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ConfigurationAdapter;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.util.CaseInsensitiveMap;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -20,8 +19,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -41,13 +40,13 @@ public class YamlConfig implements ConfigurationAdapter {
             yaml = new Yaml(options);
 
             try (InputStream is = new FileInputStream(file)) {
-                config = (Map) yaml.load(is);
+                config = new LinkedHashMap((Map) yaml.load(is));
             }
 
             if (config == null) {
-                config = new CaseInsensitiveMap();
+                config = new LinkedHashMap();
             } else {
-                config = new CaseInsensitiveMap(config);
+                config = new LinkedHashMap(config);
             }
         } catch (IOException ex) {
             throw new RuntimeException("Could not load configuration!", ex);
@@ -126,8 +125,8 @@ public class YamlConfig implements ConfigurationAdapter {
     @Override
     @SuppressWarnings("unchecked")
     public Map<String, ServerInfo> getServers() {
-        Map<String, Map<String, Object>> base = get("servers", (Map) Collections.singletonMap("lobby", new HashMap<>()));
-        Map<String, ServerInfo> ret = new HashMap<>();
+        Map<String, Map<String, Object>> base = get("servers", (Map) Collections.singletonMap("lobby", new LinkedHashMap<>()));
+        Map<String, ServerInfo> ret = new LinkedHashMap<>();
 
         for (Map.Entry<String, Map<String, Object>> entry : base.entrySet()) {
             Map<String, Object> val = entry.getValue();
@@ -149,9 +148,9 @@ public class YamlConfig implements ConfigurationAdapter {
     public Collection<ListenerInfo> getListeners() {
         Collection<Map<String, Object>> base = get("listeners", (Collection) Arrays.asList(new Map[]
                 {
-                        new HashMap()
+                        new LinkedHashMap()
                 }));
-        Collection<ListenerInfo> ret = new HashSet<>();
+        Collection<ListenerInfo> ret = new LinkedHashSet<>();
 
         for (Map<String, Object> val : base) {
             String motd = get("motd", "&1Another Bungee server", val);
@@ -177,7 +176,7 @@ public class YamlConfig implements ConfigurationAdapter {
     @SuppressWarnings("unchecked")
     public Collection<String> getGroups(String player) {
         Collection<String> groups = get("groups." + player, null);
-        Collection<String> ret = (groups == null) ? new HashSet<String>() : new HashSet<>(groups);
+        Collection<String> ret = (groups == null) ? new LinkedHashSet<>() : new LinkedHashSet<>(groups);
         ret.add("default");
         return ret;
     }

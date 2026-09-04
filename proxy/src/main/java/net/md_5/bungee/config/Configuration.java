@@ -1,6 +1,8 @@
 package net.md_5.bungee.config;
 
 import com.google.common.base.Preconditions;
+import com.legacyminecraft.bungeeposeidon.profile.ProfileLookupMethod;
+import com.legacyminecraft.bungeeposeidon.profile.WrongNameCasingHandlingMode;
 import lombok.Getter;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ConfigurationAdapter;
@@ -39,6 +41,12 @@ public class Configuration {
     private Collection<String> disabledCommands;
     private int throttle = 4000;
 
+    private ProfileLookupMethod profileLookupMethod = ProfileLookupMethod.GET;
+    public boolean allowOfflineAccounts = true;
+    public boolean prefixOfflineUsernames = false;
+    public boolean useLegacyUuidGeneration = false;
+    public WrongNameCasingHandlingMode handleWrongNameCasing = WrongNameCasingHandlingMode.KEEP;
+
     public void load() {
         ConfigurationAdapter adapter = ProxyServer.getInstance().getConfigurationAdapter();
         adapter.load();
@@ -50,6 +58,12 @@ public class Configuration {
         throttle = adapter.getInt("connection_throttle", throttle);
 
         disabledCommands = new CaseInsensitiveSet((Collection<String>) adapter.getList("disabled_commands", Arrays.asList("find")));
+
+        profileLookupMethod = ProfileLookupMethod.valueOf(adapter.getString("profile_lookup_method", profileLookupMethod.name()));
+        allowOfflineAccounts = adapter.getBoolean("allow_offline_accounts", allowOfflineAccounts);
+        prefixOfflineUsernames = adapter.getBoolean("prefix_offline_usernames", prefixOfflineUsernames);
+        useLegacyUuidGeneration = adapter.getBoolean("use_legacy_uuid_generation", useLegacyUuidGeneration);
+        handleWrongNameCasing = WrongNameCasingHandlingMode.valueOf(adapter.getString("handle_wrong_name_casing", handleWrongNameCasing.name()));
 
         Preconditions.checkArgument(listeners != null && !listeners.isEmpty(), "No listeners defined.");
 

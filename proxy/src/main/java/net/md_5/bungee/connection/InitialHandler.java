@@ -1,12 +1,16 @@
 package net.md_5.bungee.connection;
 
 import com.google.common.base.Preconditions;
+import com.legacyminecraft.bungeeposeidon.api.profile.PlayerProfile;
+import com.legacyminecraft.bungeeposeidon.login.LoginProcessHandler;
+import com.legacyminecraft.bungeeposeidon.profile.PlayerProfileImpl;
+import com.legacyminecraft.bungeeposeidon.service.ServiceClientException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.md_5.bungee.BungeeCord;
 import net.md_5.bungee.UserConnection;
 import net.md_5.bungee.Util;
-import net.md_5.bungee.api.Callback;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ListenerInfo;
@@ -14,9 +18,7 @@ import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.LoginEvent;
-import net.md_5.bungee.api.event.PlayerHandshakeEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
-import net.md_5.bungee.http.HttpClient;
 import net.md_5.bungee.netty.ChannelWrapper;
 import net.md_5.bungee.netty.HandlerBoss;
 import net.md_5.bungee.netty.PacketHandler;
@@ -26,26 +28,36 @@ import net.md_5.bungee.protocol.packet.Packet1Login;
 import net.md_5.bungee.protocol.packet.Packet2Handshake;
 import net.md_5.bungee.protocol.packet.PacketFFKick;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.URLEncoder;
-import java.util.Random;
+import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 @RequiredArgsConstructor
 public class InitialHandler extends PacketHandler implements PendingConnection {
 
-    private static final Random RANDOM = new Random();
+    private static final Executor LOGIN_EXECUTOR = new ThreadPoolExecutor(
+            0, Runtime.getRuntime().availableProcessors(),
+            60L, TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>());
 
     private final ProxyServer bungee;
+    @Getter
     private ChannelWrapper ch;
     @Getter
     private final ListenerInfo listener;
+    @Getter
+    private LoginProcessHandler loginProcessHandler;
     @Getter
     private Packet2Handshake handshake;
     @Getter
     private Packet1Login login;
     @Getter
-    private State thisState = State.HANDSHAKE;
+    @Setter
+    private volatile State thisState = State.HANDSHAKE;
     private final Unsafe unsafe = new Unsafe() {
         @Override
         public void sendPacket(DefinedPacket packet) {
@@ -54,6 +66,8 @@ public class InitialHandler extends PacketHandler implements PendingConnection {
     };
     @Getter
     private boolean onlineMode = BungeeCord.getInstance().config.isOnlineMode();
+    @Getter
+    @Setter
     private String serverId;
 
     public enum State {
@@ -73,6 +87,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection {
     @Override
     public void handle(Packet1Login login) throws Exception {
         Preconditions.checkState(thisState == State.LOGIN, "Not expecting LOGIN");
+        login.setUsername(this.loginProcessHandler.getProfile().name());
         this.login = login;
 
         if (login.getEntityId() > Vanilla.PROTOCOL_VERSION) {
@@ -99,27 +114,18 @@ public class InitialHandler extends PacketHandler implements PendingConnection {
         }
 
         if (isOnlineMode()) {
-            String encName = URLEncoder.encode(getName(), "UTF-8");
-            String encodedHash = URLEncoder.encode(this.serverId, "UTF-8");
-            String authURL = "http://session.minecraft.net/game/checkserver.jsp?user=" + encName + "&serverId=" + encodedHash;
+            InetAddress address = ((InetSocketAddress) this.ch.getHandle().remoteAddress()).getAddress();
 
-            Callback<String> handler = new Callback<String>() {
-                @Override
-                public void done(String result, Throwable error) {
-                    if (error == null) {
-                        if ("YES".equals(result)) {
-                            finish();
-                        } else {
-                            disconnect("Not authenticated with Minecraft.net");
-                        }
-                    } else {
-                        disconnect(bungee.getTranslation("mojang_fail"));
-                        bungee.getLogger().log(Level.SEVERE, "Error authenticating " + getName() + " with minecraft.net", error);
-                    }
+            try {
+                if (BungeeCord.getInstance().getSessionService().verifySession(getName(), this.serverId, address)) {
+                    finish();
+                } else {
+                    disconnect("Not authenticated with Minecraft.net");
                 }
-            };
-
-            HttpClient.get(authURL, ch.getHandle().eventLoop(), handler);
+            } catch (ServiceClientException e) {
+                disconnect(bungee.getTranslation("mojang_fail"));
+                bungee.getLogger().log(Level.SEVERE, "Error authenticating " + getName() + " with minecraft.net", e);
+            }
         } else {
             finish();
         }
@@ -131,16 +137,8 @@ public class InitialHandler extends PacketHandler implements PendingConnection {
         this.handshake = handshake;
         bungee.getLogger().log(Level.INFO, "{0} has connected", this);
 
-        bungee.getPluginManager().callEvent(new PlayerHandshakeEvent(InitialHandler.this, handshake));
-
-        if (isOnlineMode()) {
-            this.serverId = Long.toHexString(RANDOM.nextLong());
-            unsafe().sendPacket(new Packet2Handshake(this.serverId));
-        } else {
-            unsafe().sendPacket(new Packet2Handshake("-"));
-        }
-
-        thisState = State.LOGIN;
+        this.loginProcessHandler = new LoginProcessHandler(this, handshake.getUsername());
+        LOGIN_EXECUTOR.execute(this.loginProcessHandler);
     }
 
     private void finish() {
@@ -162,7 +160,8 @@ public class InitialHandler extends PacketHandler implements PendingConnection {
             return;
         }
 
-        UserConnection userCon = new UserConnection(bungee, ch, getName(), this);
+        PlayerProfile profile = new PlayerProfileImpl(this.loginProcessHandler.getProfile());
+        UserConnection userCon = new UserConnection(bungee, ch, profile, this);
         userCon.init();
 
         bungee.getPluginManager().callEvent(new PostLoginEvent(userCon));
