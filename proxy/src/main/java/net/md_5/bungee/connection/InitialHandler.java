@@ -18,6 +18,7 @@ import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.LoginEvent;
+import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.netty.ChannelWrapper;
 import net.md_5.bungee.netty.HandlerBoss;
@@ -26,9 +27,9 @@ import net.md_5.bungee.protocol.Vanilla;
 import net.md_5.bungee.protocol.packet.DefinedPacket;
 import net.md_5.bungee.protocol.packet.Packet1Login;
 import net.md_5.bungee.protocol.packet.Packet2Handshake;
+import net.md_5.bungee.protocol.packet.PacketFAPluginMessage;
 import net.md_5.bungee.protocol.packet.PacketFFKick;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -114,10 +115,8 @@ public class InitialHandler extends PacketHandler implements PendingConnection {
         }
 
         if (isOnlineMode()) {
-            InetAddress address = ((InetSocketAddress) this.ch.getHandle().remoteAddress()).getAddress();
-
             try {
-                if (BungeeCord.getInstance().getSessionService().verifySession(getName(), this.serverId, address)) {
+                if (BungeeCord.getInstance().getSessionService().verifySession(getName(), getServerId(), getAddress().getAddress())) {
                     finish();
                 } else {
                     disconnect("Not authenticated with Minecraft.net");
@@ -145,6 +144,12 @@ public class InitialHandler extends PacketHandler implements PendingConnection {
 
         this.loginProcessHandler = new LoginProcessHandler(this, name);
         LOGIN_EXECUTOR.execute(this.loginProcessHandler);
+    }
+
+    @Override
+    public void handle(PacketFAPluginMessage pluginMessage) throws Exception {
+        PluginMessageEvent event = new PluginMessageEvent(this, this, pluginMessage.getTag(), pluginMessage.getData().clone());
+        bungee.getPluginManager().callEvent(event);
     }
 
     private void finish() {
@@ -206,7 +211,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection {
 
     @Override
     public InetSocketAddress getAddress() {
-        return (InetSocketAddress) ch.getHandle().remoteAddress();
+        return ch.getClientAddress();
     }
 
     @Override

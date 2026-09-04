@@ -36,7 +36,7 @@ public class HandlerBoss extends ChannelInboundHandlerAdapter {
 
     public ServerListPingHandler enablePingProtocol(InitialHandler initialHandler) {
         ListenerInfo listener = initialHandler.getListener();
-        InetSocketAddress remoteAddress = (InetSocketAddress) this.channel.getHandle().remoteAddress();
+        InetSocketAddress remoteAddress = this.channel.getClientAddress();
         ServerListPingHandler pingHandler = new ServerListPingHandler(listener, remoteAddress);
         this.pingHandler = pingHandler;
         return pingHandler;

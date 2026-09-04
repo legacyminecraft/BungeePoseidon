@@ -31,6 +31,7 @@ import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.connection.InitialHandler;
 import net.md_5.bungee.protocol.Vanilla;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +44,8 @@ public class PipelineUtils {
     public static final ChannelInitializer<Channel> SERVER_CHILD = new ChannelInitializer<Channel>() {
         @Override
         protected void initChannel(Channel ch) throws Exception {
-            if (BungeeCord.getInstance().getConnectionThrottle().throttle(((InetSocketAddress) ch.remoteAddress()).getAddress())) {
+            InetAddress address = ((InetSocketAddress) ch.remoteAddress()).getAddress();
+            if (!address.isLoopbackAddress() && BungeeCord.getInstance().getConnectionThrottle().throttle(address)) {
                 ch.close();
                 return;
             }

@@ -5,15 +5,22 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.Getter;
+import lombok.Setter;
+
+import java.net.InetSocketAddress;
 
 public class ChannelWrapper {
 
     private final Channel ch;
     @Getter
+    @Setter
+    private InetSocketAddress clientAddress;
+    @Getter
     private volatile boolean closed;
 
     public ChannelWrapper(ChannelHandlerContext ctx) {
         this.ch = ctx.channel();
+        this.clientAddress = (InetSocketAddress) this.ch.remoteAddress();
     }
 
     public synchronized void write(Object packet) {
