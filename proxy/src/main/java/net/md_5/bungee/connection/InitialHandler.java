@@ -137,13 +137,19 @@ public class InitialHandler extends PacketHandler implements PendingConnection {
         this.handshake = handshake;
         bungee.getLogger().log(Level.INFO, "{0} has connected", this);
 
-        this.loginProcessHandler = new LoginProcessHandler(this, handshake.getUsername());
+        String name = handshake.getUsername();
+        // Strip Glass Networking flag from handshake username
+        if (name.contains(";")) {
+            name = name.split(";")[0];
+        }
+
+        this.loginProcessHandler = new LoginProcessHandler(this, name);
         LOGIN_EXECUTOR.execute(this.loginProcessHandler);
     }
 
     private void finish() {
         // Check for multiple connections
-        ProxiedPlayer old = bungee.getPlayer(handshake.getUsername());
+        ProxiedPlayer old = bungee.getPlayer(this.loginProcessHandler.getProfile().name());
         if (old != null) {
             old.disconnect(bungee.getTranslation("already_connected"));
         }
