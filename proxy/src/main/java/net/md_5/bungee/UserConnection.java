@@ -84,6 +84,7 @@ public final class UserConnection implements ProxiedPlayer {
 
     public void init() {
         Collection<String> g = bungee.getConfigurationAdapter().getGroups(getName());
+        g.addAll(bungee.getConfigurationAdapter().getGroups(getUniqueId().toString()));
         for (String s : g) {
             addGroups(s);
         }

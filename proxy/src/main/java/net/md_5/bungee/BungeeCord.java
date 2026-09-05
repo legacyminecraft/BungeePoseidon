@@ -62,12 +62,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -108,6 +110,7 @@ public class BungeeCord extends ProxyServer {
      * Fully qualified connections.
      */
     private final Map<String, UserConnection> connections = new CaseInsensitiveMap<>();
+    private final Map<UUID, UserConnection> connectionsByUuid = new HashMap<>();
     private final ReadWriteLock connectionLock = new ReentrantReadWriteLock();
     /**
      * Plugin manager.
@@ -372,6 +375,16 @@ public class BungeeCord extends ProxyServer {
     }
 
     @Override
+    public ProxiedPlayer getPlayer(UUID uuid) {
+        connectionLock.readLock().lock();
+        try {
+            return connectionsByUuid.get(uuid);
+        } finally {
+            connectionLock.readLock().unlock();
+        }
+    }
+
+    @Override
     public Map<String, ServerInfo> getServers() {
         return config.getServers();
     }
@@ -413,6 +426,7 @@ public class BungeeCord extends ProxyServer {
         connectionLock.writeLock().lock();
         try {
             connections.put(con.getName(), con);
+            connectionsByUuid.put(con.getUniqueId(), con);
         } finally {
             connectionLock.writeLock().unlock();
         }
@@ -422,6 +436,7 @@ public class BungeeCord extends ProxyServer {
         connectionLock.writeLock().lock();
         try {
             connections.remove(con.getName());
+            connectionsByUuid.remove(con.getUniqueId());
         } finally {
             connectionLock.writeLock().unlock();
         }

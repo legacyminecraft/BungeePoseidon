@@ -173,9 +173,10 @@ public class YamlConfig implements ConfigurationAdapter {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Collection<String> getGroups(String player) {
-        Collection<String> groups = get("groups." + player, null);
+        Map<String, Collection<String>> raw = get("groups", Collections.emptyMap());
+        Collection<String> groups = raw.get(player);
+
         Collection<String> ret = (groups == null) ? new LinkedHashSet<>() : new LinkedHashSet<>(groups);
         ret.add("default");
         return ret;

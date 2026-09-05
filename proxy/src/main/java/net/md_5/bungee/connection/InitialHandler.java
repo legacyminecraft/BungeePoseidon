@@ -3,6 +3,7 @@ package net.md_5.bungee.connection;
 import com.google.common.base.Preconditions;
 import com.legacyminecraft.bungeeposeidon.api.profile.PlayerProfile;
 import com.legacyminecraft.bungeeposeidon.login.LoginProcessHandler;
+import com.legacyminecraft.bungeeposeidon.profile.MinecraftProfile;
 import com.legacyminecraft.bungeeposeidon.profile.PlayerProfileImpl;
 import com.legacyminecraft.bungeeposeidon.service.ServiceClientException;
 import lombok.Getter;
@@ -31,6 +32,8 @@ import net.md_5.bungee.protocol.packet.PacketFAPluginMessage;
 import net.md_5.bungee.protocol.packet.PacketFFKick;
 
 import java.net.InetSocketAddress;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -88,7 +91,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection {
     @Override
     public void handle(Packet1Login login) throws Exception {
         Preconditions.checkState(thisState == State.LOGIN, "Not expecting LOGIN");
-        login.setUsername(this.loginProcessHandler.getProfile().name());
+        login.setUsername(getName());
         this.login = login;
 
         if (login.getEntityId() > Vanilla.PROTOCOL_VERSION) {
@@ -154,9 +157,14 @@ public class InitialHandler extends PacketHandler implements PendingConnection {
 
     private void finish() {
         // Check for multiple connections
-        ProxiedPlayer old = bungee.getPlayer(this.loginProcessHandler.getProfile().name());
-        if (old != null) {
-            old.disconnect(bungee.getTranslation("already_connected"));
+        ProxiedPlayer connected = bungee.getPlayer(getName());
+        if (connected == null) {
+            connected = bungee.getPlayer(getUniqueId());
+        }
+
+        if (connected != null) {
+            disconnect(bungee.getTranslation("already_connected"));
+            return;
         }
 
         // fire login event
@@ -201,7 +209,18 @@ public class InitialHandler extends PacketHandler implements PendingConnection {
 
     @Override
     public String getName() {
-        return (login == null) ? null : login.getUsername();
+        return Optional.ofNullable(this.loginProcessHandler)
+                .map(LoginProcessHandler::getProfile)
+                .map(MinecraftProfile::name)
+                .orElse(null);
+    }
+
+    @Override
+    public UUID getUniqueId() {
+        return Optional.ofNullable(this.loginProcessHandler)
+                .map(LoginProcessHandler::getProfile)
+                .map(MinecraftProfile::id)
+                .orElse(null);
     }
 
     @Override

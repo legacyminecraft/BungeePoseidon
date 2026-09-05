@@ -67,7 +67,7 @@ public class YamlReconnectHandler extends AbstractReconnectHandler {
     }
 
     private String key(ProxiedPlayer player) {
-        return player.getName();
+        return player.getUniqueId().toString();
     }
 
     @Override
