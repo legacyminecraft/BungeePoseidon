@@ -43,6 +43,7 @@ import net.md_5.bungee.log.BungeeLogger;
 import net.md_5.bungee.log.LoggingOutputStream;
 import net.md_5.bungee.netty.PipelineUtils;
 import net.md_5.bungee.protocol.Vanilla;
+import net.md_5.bungee.protocol.channel.BungeeChannelInitializer;
 import net.md_5.bungee.protocol.packet.DefinedPacket;
 import net.md_5.bungee.protocol.packet.Packet3Chat;
 import net.md_5.bungee.reconnect.YamlReconnectHandler;
@@ -144,6 +145,17 @@ public class BungeeCord extends ProxyServer {
     @Getter
     private final ProfileCache profileCache = new ProfileCache();
 
+    private final Unsafe unsafe = new Unsafe() {
+
+        @Getter
+        @Setter
+        private BungeeChannelInitializer frontendChannelInitializer;
+
+        @Getter
+        @Setter
+        private BungeeChannelInitializer backendChannelInitializer;
+    };
+
 
     {
         // TODO: Proper fallback when we interface the manager
@@ -206,6 +218,7 @@ public class BungeeCord extends ProxyServer {
         profileCache.load();
         pluginManager.loadAndEnablePlugins();
         connectionThrottle = new ConnectionThrottle(config.getThrottle());
+        PipelineUtils.setChannelInitializerHolders();
         startListeners();
 
         saveThread.scheduleAtFixedRate(new TimerTask() {
@@ -234,7 +247,7 @@ public class BungeeCord extends ProxyServer {
             new ServerBootstrap()
                     .channel(PipelineUtils.getServerChannelType())
                     .childAttr(PipelineUtils.LISTENER, info)
-                    .childHandler(PipelineUtils.SERVER_CHILD)
+                    .childHandler(unsafe().getFrontendChannelInitializer().getChannelInitializer())
                     .group(eventLoops)
                     .localAddress(info.getHost())
                     .bind().addListener(listener);
@@ -444,5 +457,10 @@ public class BungeeCord extends ProxyServer {
 
     public Collection<String> getDisabledCommands() {
         return config.getDisabledCommands();
+    }
+
+    @Override
+    public Unsafe unsafe() {
+        return this.unsafe;
     }
 }

@@ -5,10 +5,8 @@ import com.google.common.base.Preconditions;
 import com.legacyminecraft.bungeeposeidon.api.profile.PlayerProfile;
 import com.legacyminecraft.bungeeposeidon.api.util.TextWrapper;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.util.internal.PlatformDependent;
 import lombok.Getter;
@@ -129,13 +127,6 @@ public final class UserConnection implements ProxiedPlayer {
 
         pendingConnects.add(target);
 
-        ChannelInitializer initializer = new ChannelInitializer() {
-            @Override
-            protected void initChannel(Channel ch) throws Exception {
-                PipelineUtils.BASE.initChannel(ch);
-                ch.pipeline().get(HandlerBoss.class).setHandler(new ServerConnector(bungee, UserConnection.this, target));
-            }
-        };
         ChannelFutureListener listener = new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
@@ -154,13 +145,15 @@ public final class UserConnection implements ProxiedPlayer {
                             sendMessage(bungee.getTranslation("fallback_kick") + future.cause().getClass().getName());
                         }
                     }
+                } else {
+                    future.channel().pipeline().get(HandlerBoss.class).setHandler(new ServerConnector(bungee, UserConnection.this, target));
                 }
             }
         };
         Bootstrap b = new Bootstrap()
                 .channel(PipelineUtils.getChannelType())
                 .group(BungeeCord.getInstance().eventLoops)
-                .handler(initializer)
+                .handler(bungee.unsafe().getBackendChannelInitializer().getChannelInitializer())
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000) // TODO: Configurable
                 .remoteAddress(target.getAddress());
         // Windows is bugged, multi homed users will just have to live with random connecting IPs
