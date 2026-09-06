@@ -198,6 +198,7 @@ public class BungeeCord extends ProxyServer {
     @Override
     public void start() throws IOException {
         ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED); // Eats performance
+        PipelineUtils.setChannelInitializerHolders();
 
         Path iconPath = Path.of("server-icon.png");
         if (Files.exists(iconPath)) {
@@ -218,7 +219,6 @@ public class BungeeCord extends ProxyServer {
         profileCache.load();
         pluginManager.loadAndEnablePlugins();
         connectionThrottle = new ConnectionThrottle(config.getThrottle());
-        PipelineUtils.setChannelInitializerHolders();
         startListeners();
 
         saveThread.scheduleAtFixedRate(new TimerTask() {
