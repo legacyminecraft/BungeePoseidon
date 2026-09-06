@@ -2,6 +2,7 @@ package net.md_5.bungee;
 
 import com.google.common.base.Preconditions;
 import com.legacyminecraft.bungeeposeidon.forwarding.PlayerDataForwarding;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
@@ -27,9 +28,13 @@ import java.util.Objects;
 public class ServerConnector extends PacketHandler {
 
     private final ProxyServer bungee;
+    @Getter
     private ChannelWrapper ch;
+    @Getter
     private final UserConnection user;
+    @Getter
     private final BungeeServerInfo target;
+    @Getter
     private State thisState = State.LOGIN;
 
     private enum State {
