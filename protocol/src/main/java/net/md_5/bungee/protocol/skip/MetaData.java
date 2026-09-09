@@ -2,10 +2,10 @@ package net.md_5.bungee.protocol.skip;
 
 import io.netty.buffer.ByteBuf;
 
-class MetaData extends Instruction {
+public class MetaData extends Instruction {
 
     @Override
-    void read(ByteBuf in) {
+    public void read(ByteBuf in) {
         int x = in.readUnsignedByte();
         while (x != 127) {
             int type = x >> 5;

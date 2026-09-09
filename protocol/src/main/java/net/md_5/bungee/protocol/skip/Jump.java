@@ -2,11 +2,11 @@ package net.md_5.bungee.protocol.skip;
 
 import io.netty.buffer.ByteBuf;
 
-class Jump extends Instruction {
+public class Jump extends Instruction {
 
     final int len;
 
-    Jump(int len) {
+    public Jump(int len) {
         if (len < 0) {
             throw new IndexOutOfBoundsException();
         }
@@ -14,7 +14,7 @@ class Jump extends Instruction {
     }
 
     @Override
-    void read(ByteBuf in) {
+    public void read(ByteBuf in) {
         in.skipBytes(len);
     }
 }

@@ -9,28 +9,29 @@ import net.md_5.bungee.protocol.packet.Packet3Chat;
 import net.md_5.bungee.protocol.packet.Packet9Respawn;
 import net.md_5.bungee.protocol.packet.PacketFAPluginMessage;
 import net.md_5.bungee.protocol.packet.PacketFFKick;
+import net.md_5.bungee.protocol.skip.Instruction;
 import net.md_5.bungee.protocol.skip.PacketReader;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import static net.md_5.bungee.protocol.OpCode.BLOCK_CHANGE_ARRAY;
-import static net.md_5.bungee.protocol.OpCode.BOOLEAN;
-import static net.md_5.bungee.protocol.OpCode.BYTE;
-import static net.md_5.bungee.protocol.OpCode.DOUBLE;
-import static net.md_5.bungee.protocol.OpCode.FLOAT;
-import static net.md_5.bungee.protocol.OpCode.INT;
-import static net.md_5.bungee.protocol.OpCode.INT_3;
-import static net.md_5.bungee.protocol.OpCode.INT_BYTE;
-import static net.md_5.bungee.protocol.OpCode.ITEM;
-import static net.md_5.bungee.protocol.OpCode.LONG;
-import static net.md_5.bungee.protocol.OpCode.METADATA;
-import static net.md_5.bungee.protocol.OpCode.OPTIONAL_MOTION;
-import static net.md_5.bungee.protocol.OpCode.SHORT;
-import static net.md_5.bungee.protocol.OpCode.SHORT_BYTE;
-import static net.md_5.bungee.protocol.OpCode.SHORT_ITEM;
-import static net.md_5.bungee.protocol.OpCode.STRING;
-import static net.md_5.bungee.protocol.OpCode.UBYTE_BYTE;
+import static net.md_5.bungee.protocol.skip.Instruction.BLOCK_CHANGE_ARRAY;
+import static net.md_5.bungee.protocol.skip.Instruction.BOOLEAN;
+import static net.md_5.bungee.protocol.skip.Instruction.BYTE;
+import static net.md_5.bungee.protocol.skip.Instruction.DOUBLE;
+import static net.md_5.bungee.protocol.skip.Instruction.FLOAT;
+import static net.md_5.bungee.protocol.skip.Instruction.INT;
+import static net.md_5.bungee.protocol.skip.Instruction.INT_3;
+import static net.md_5.bungee.protocol.skip.Instruction.INT_BYTE;
+import static net.md_5.bungee.protocol.skip.Instruction.ITEM;
+import static net.md_5.bungee.protocol.skip.Instruction.LONG;
+import static net.md_5.bungee.protocol.skip.Instruction.METADATA;
+import static net.md_5.bungee.protocol.skip.Instruction.OPTIONAL_MOTION;
+import static net.md_5.bungee.protocol.skip.Instruction.SHORT;
+import static net.md_5.bungee.protocol.skip.Instruction.SHORT_BYTE;
+import static net.md_5.bungee.protocol.skip.Instruction.SHORT_ITEM;
+import static net.md_5.bungee.protocol.skip.Instruction.STRING;
+import static net.md_5.bungee.protocol.skip.Instruction.UBYTE_BYTE;
 
 public class Vanilla implements Protocol {
 
@@ -40,7 +41,7 @@ public class Vanilla implements Protocol {
     private static final Vanilla instance = new Vanilla();
     /*========================================================================*/
     @Getter
-    private final OpCode[][] opCodes = new OpCode[256][];
+    private final Instruction[][] instructions = new Instruction[256][];
     @SuppressWarnings("unchecked")
     @Getter
     protected Class<? extends DefinedPacket>[] classes = new Class[256];
@@ -63,9 +64,8 @@ public class Vanilla implements Protocol {
 
     @Override
     public DefinedPacket read(short packetId, ByteBuf buf) {
-        int start = buf.readerIndex();
         DefinedPacket packet = read(packetId, buf, this);
-        if (buf.readerIndex() == start && packetId != 0) {
+        if (packet == null && instructions[packetId] == null) {
             throw new BadPacketException("Unknown packet id " + packetId);
         }
         return packet;
@@ -105,210 +105,210 @@ public class Vanilla implements Protocol {
     }
 
     {
-        opCodes[0x00] = new OpCode[]
+        instructions[0x00] = new Instruction[]
                 {
                 };
-        opCodes[0x04] = new OpCode[]
+        instructions[0x04] = new Instruction[]
                 {
                         LONG
                 };
-        opCodes[0x05] = new OpCode[]
+        instructions[0x05] = new Instruction[]
                 {
                         INT, SHORT, SHORT, SHORT
                 };
-        opCodes[0x06] = new OpCode[]
+        instructions[0x06] = new Instruction[]
                 {
                         INT, INT, INT
                 };
-        opCodes[0x07] = new OpCode[]
+        instructions[0x07] = new Instruction[]
                 {
                         INT, INT, BOOLEAN
                 };
-        opCodes[0x08] = new OpCode[]
+        instructions[0x08] = new Instruction[]
                 {
                         SHORT
                 };
-        opCodes[0x0A] = new OpCode[]
+        instructions[0x0A] = new Instruction[]
                 {
                         BOOLEAN
                 };
-        opCodes[0x0B] = new OpCode[]
+        instructions[0x0B] = new Instruction[]
                 {
                         DOUBLE, DOUBLE, DOUBLE, DOUBLE, BOOLEAN
                 };
-        opCodes[0x0C] = new OpCode[]
+        instructions[0x0C] = new Instruction[]
                 {
                         FLOAT, FLOAT, BOOLEAN
                 };
-        opCodes[0x0D] = new OpCode[]
+        instructions[0x0D] = new Instruction[]
                 {
                         DOUBLE, DOUBLE, DOUBLE, DOUBLE, FLOAT, FLOAT, BOOLEAN
                 };
-        opCodes[0x0E] = new OpCode[]
+        instructions[0x0E] = new Instruction[]
                 {
                         BYTE, INT, BYTE, INT, BYTE
                 };
-        opCodes[0x0F] = new OpCode[]
+        instructions[0x0F] = new Instruction[]
                 {
                         INT, BYTE, INT, BYTE, ITEM
                 };
-        opCodes[0x10] = new OpCode[]
+        instructions[0x10] = new Instruction[]
                 {
                         SHORT
                 };
-        opCodes[0x11] = new OpCode[]
+        instructions[0x11] = new Instruction[]
                 {
                         INT, BYTE, INT, BYTE, INT
                 };
-        opCodes[0x12] = new OpCode[]
+        instructions[0x12] = new Instruction[]
                 {
                         INT, BYTE
                 };
-        opCodes[0x13] = new OpCode[]
+        instructions[0x13] = new Instruction[]
                 {
                         INT, BYTE
                 };
-        opCodes[0x14] = new OpCode[]
+        instructions[0x14] = new Instruction[]
                 {
                         INT, STRING, INT, INT, INT, BYTE, BYTE, SHORT
                 };
-        opCodes[0x15] = new OpCode[]
+        instructions[0x15] = new Instruction[]
                 {
                         INT, SHORT, BYTE, SHORT, INT, INT, INT, BYTE, BYTE, BYTE
                 };
-        opCodes[0x16] = new OpCode[]
+        instructions[0x16] = new Instruction[]
                 {
                         INT, INT
                 };
-        opCodes[0x17] = new OpCode[]
+        instructions[0x17] = new Instruction[]
                 {
                         INT, BYTE, INT, INT, INT, OPTIONAL_MOTION
                 };
-        opCodes[0x18] = new OpCode[]
+        instructions[0x18] = new Instruction[]
                 {
                         INT, BYTE, INT, INT, INT, BYTE, BYTE, METADATA
                 };
-        opCodes[0x19] = new OpCode[]
+        instructions[0x19] = new Instruction[]
                 {
                         INT, STRING, INT, INT, INT, INT
                 };
-        opCodes[0x1B] = new OpCode[]
+        instructions[0x1B] = new Instruction[]
                 {
                         FLOAT, FLOAT, FLOAT, FLOAT, BOOLEAN, BOOLEAN
                 };
-        opCodes[0x1C] = new OpCode[]
+        instructions[0x1C] = new Instruction[]
                 {
                         INT, SHORT, SHORT, SHORT
                 };
-        opCodes[0x1D] = new OpCode[]
+        instructions[0x1D] = new Instruction[]
                 {
                         INT
                 };
-        opCodes[0x1E] = new OpCode[]
+        instructions[0x1E] = new Instruction[]
                 {
                         INT
                 };
-        opCodes[0x1F] = new OpCode[]
+        instructions[0x1F] = new Instruction[]
                 {
                         INT, BYTE, BYTE, BYTE
                 };
-        opCodes[0x20] = new OpCode[]
+        instructions[0x20] = new Instruction[]
                 {
                         INT, BYTE, BYTE
                 };
-        opCodes[0x21] = new OpCode[]
+        instructions[0x21] = new Instruction[]
                 {
                         INT, BYTE, BYTE, BYTE, BYTE, BYTE
                 };
-        opCodes[0x22] = new OpCode[]
+        instructions[0x22] = new Instruction[]
                 {
                         INT, INT, INT, INT, BYTE, BYTE
                 };
-        opCodes[0x26] = new OpCode[]
+        instructions[0x26] = new Instruction[]
                 {
                         INT, BYTE
                 };
-        opCodes[0x27] = new OpCode[]
+        instructions[0x27] = new Instruction[]
                 {
                         INT, INT
                 };
-        opCodes[0x28] = new OpCode[]
+        instructions[0x28] = new Instruction[]
                 {
                         INT, METADATA
                 };
-        opCodes[0x32] = new OpCode[]
+        instructions[0x32] = new Instruction[]
                 {
                         INT, INT, BYTE
                 };
-        opCodes[0x33] = new OpCode[]
+        instructions[0x33] = new Instruction[]
                 {
                         INT, SHORT, INT, BYTE, BYTE, BYTE, INT_BYTE
                 };
-        opCodes[0x34] = new OpCode[]
+        instructions[0x34] = new Instruction[]
                 {
                         INT, INT, BLOCK_CHANGE_ARRAY
                 };
-        opCodes[0x35] = new OpCode[]
+        instructions[0x35] = new Instruction[]
                 {
                         INT, BYTE, INT, BYTE, BYTE
                 };
-        opCodes[0x36] = new OpCode[]
+        instructions[0x36] = new Instruction[]
                 {
                         INT, SHORT, INT, BYTE, BYTE
                 };
-        opCodes[0x3C] = new OpCode[]
+        instructions[0x3C] = new Instruction[]
                 {
                         DOUBLE, DOUBLE, DOUBLE, FLOAT, INT_3
                 };
-        opCodes[0x3D] = new OpCode[]
+        instructions[0x3D] = new Instruction[]
                 {
                         INT, INT, BYTE, INT, INT
                 };
-        opCodes[0x46] = new OpCode[]
+        instructions[0x46] = new Instruction[]
                 {
                         BYTE
                 };
-        opCodes[0x47] = new OpCode[]
+        instructions[0x47] = new Instruction[]
                 {
                         INT, BYTE, INT, INT, INT
                 };
-        opCodes[0x64] = new OpCode[]
+        instructions[0x64] = new Instruction[]
                 {
                         BYTE, BYTE, SHORT_BYTE, BYTE
                 };
-        opCodes[0x65] = new OpCode[]
+        instructions[0x65] = new Instruction[]
                 {
                         BYTE
                 };
-        opCodes[0x66] = new OpCode[]
+        instructions[0x66] = new Instruction[]
                 {
                         BYTE, SHORT, BYTE, SHORT, BOOLEAN, ITEM
                 };
-        opCodes[0x67] = new OpCode[]
+        instructions[0x67] = new Instruction[]
                 {
                         BYTE, SHORT, ITEM
                 };
-        opCodes[0x68] = new OpCode[]
+        instructions[0x68] = new Instruction[]
                 {
                         BYTE, SHORT_ITEM
                 };
-        opCodes[0x69] = new OpCode[]
+        instructions[0x69] = new Instruction[]
                 {
                         BYTE, SHORT, SHORT
                 };
-        opCodes[0x6A] = new OpCode[]
+        instructions[0x6A] = new Instruction[]
                 {
                         BYTE, SHORT, BOOLEAN
                 };
-        opCodes[0x82] = new OpCode[]
+        instructions[0x82] = new Instruction[]
                 {
                         INT, SHORT, INT, STRING, STRING, STRING, STRING
                 };
-        opCodes[0x83] = new OpCode[]
+        instructions[0x83] = new Instruction[]
                 {
                         SHORT, SHORT, UBYTE_BYTE
                 };
-        opCodes[0xC8] = new OpCode[]
+        instructions[0xC8] = new Instruction[]
                 {
                         INT, BYTE
                 };
