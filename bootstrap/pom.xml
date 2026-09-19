@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.legacyminecraft</groupId>
         <artifactId>bungeeposeidon-parent</artifactId>
-        <version>1.0.0-rc-1</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>bungeeposeidon-bootstrap</artifactId>
@@ -19,7 +19,7 @@
         <dependency>
             <groupId>com.legacyminecraft</groupId>
             <artifactId>bungeeposeidon-proxy</artifactId>
-            <version>1.0.0-rc-1</version>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>net.sf.jopt-simple</groupId>
