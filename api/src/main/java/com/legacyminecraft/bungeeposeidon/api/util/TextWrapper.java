@@ -2,6 +2,8 @@ package com.legacyminecraft.bungeeposeidon.api.util;
 
 import com.google.common.base.Preconditions;
 
+import java.util.regex.Pattern;
+
 import static net.md_5.bungee.api.ChatColor.COLOR_CHAR;
 
 /**
@@ -28,6 +30,8 @@ public class TextWrapper {
             8, 7, 7, 8, 7, 8, 8, 8, 7, 8, 8, 7, 9, 9, 6, 7,
             7, 7, 7, 7, 9, 6, 7, 8, 7, 6, 6, 9, 7, 6, 7, 1
     };
+
+    private static final Pattern COLOR_PATTERN = Pattern.compile(COLOR_CHAR + "[0-9A-Fa-f]");
 
     /**
      * The width of a vanilla client's chat window in pixels.
@@ -65,6 +69,7 @@ public class TextWrapper {
      */
     public static String[] wrapText(final String text) {
         Preconditions.checkArgument(text != null, "text cannot be null");
+        final String sanitized = sanitizeText(text);
 
         final StringBuilder out = new StringBuilder();
         char colorChar = 'f';
@@ -72,11 +77,11 @@ public class TextWrapper {
         int lineLength = 0;
 
         // Go over the message char by char.
-        for (int i = 0; i < text.length(); i++) {
-            char ch = text.charAt(i);
+        for (int i = 0; i < sanitized.length(); i++) {
+            char ch = sanitized.charAt(i);
 
             // Get the color
-            if (ch == COLOR_CHAR && i < text.length() - 1) {
+            if (ch == COLOR_CHAR && i < sanitized.length() - 1) {
                 // We might need a linebreak ... so ugly ;(
                 if (lineLength + 2 > CHAT_STRING_LENGTH) {
                     out.append('\n');
@@ -86,7 +91,7 @@ public class TextWrapper {
                         lineLength += 2;
                     }
                 }
-                colorChar = text.charAt(++i);
+                colorChar = sanitized.charAt(++i);
                 out.append(COLOR_CHAR).append(colorChar);
                 lineLength += 2;
                 continue;
@@ -135,7 +140,7 @@ public class TextWrapper {
      * @return the width of the text in pixels
      */
     public static int widthInPixels(final String text) {
-        Preconditions.checkArgument(text != null, "string cannot be null");
+        Preconditions.checkArgument(text != null, "text cannot be null");
 
         int length = 0;
         for (int i = 0; i < text.length(); i++) {
@@ -156,5 +161,67 @@ public class TextWrapper {
         }
 
         return length;
+    }
+
+    private static String sanitizeText(final String input) {
+        String text = trimTrailing(input);
+
+        // Remove all trailing whitespaces and color codes
+        while (endsWithColor(text)) {
+            text = trimTrailing(text.substring(0, text.length() - 2));
+        }
+
+        StringBuilder sb = new StringBuilder();
+        char prevColor = 'f';
+        char currentColor = 'f';
+
+        // Filter out all redundant color codes
+        for (int i = 0; i < text.length(); i++) {
+            // If there are multiple color codes chained together, we will get the last one
+            while (colorAt(text, i)) {
+                currentColor = text.charAt(++i);
+                i++;
+            }
+
+            // If a new color was found, place it at the beginning of the next word
+            if (Character.toLowerCase(prevColor) != Character.toLowerCase(currentColor)
+                    && !Character.isWhitespace(text.charAt(i))) {
+
+                sb.append(COLOR_CHAR).append(currentColor);
+                prevColor = currentColor;
+            }
+
+            sb.append(text.charAt(i));
+        }
+
+        text = sb.toString();
+        sb.setLength(0);
+
+        // Remove all illegal characters
+        for (int i = 0; i < text.length(); i ++) {
+            char ch = text.charAt(i);
+            if (allowedChars.indexOf(ch) != -1 || colorAt(text, i)) {
+                sb.append(ch);
+            }
+        }
+
+        return sb.toString();
+    }
+
+    private static String trimTrailing(final String input) {
+        int length = input.length();
+        while (length > 0 && Character.isWhitespace(input.charAt(length - 1))) {
+            length--;
+        }
+        return input.substring(0, length);
+    }
+
+    private static boolean colorAt(final String input, int index) {
+        if (index < 0 || index > input.length() - 2) return false;
+        return COLOR_PATTERN.matcher(input.substring(index, index + 2)).matches();
+    }
+
+    private static boolean endsWithColor(final String input) {
+        return input.length() >= 2 && COLOR_PATTERN.matcher(input.substring(input.length() - 2)).matches();
     }
 }
