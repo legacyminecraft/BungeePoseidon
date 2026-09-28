@@ -40,7 +40,7 @@ public class YamlConfig implements ConfigurationAdapter {
             yaml = new Yaml(options);
 
             try (InputStream is = new FileInputStream(file)) {
-                config = new LinkedHashMap((Map) yaml.load(is));
+                config = yaml.load(is);
             }
 
             if (config == null) {
