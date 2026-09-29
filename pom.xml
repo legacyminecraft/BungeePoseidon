@@ -4,7 +4,7 @@
 
     <groupId>com.legacyminecraft</groupId>
     <artifactId>bungeeposeidon-parent</artifactId>
-    <version>1.0.0-rc-2</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -33,7 +33,7 @@
 
     <scm>
         <developerConnection>scm:git:git@github.com:legacyminecraft/BungeePoseidon.git</developerConnection>
-      <tag>1.0.0-rc-2</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <distributionManagement>
