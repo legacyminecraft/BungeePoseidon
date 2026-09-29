@@ -5,6 +5,7 @@ import joptsimple.OptionSet;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.command.ConsoleCommandSender;
+import org.jline.reader.UserInterruptException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -40,13 +41,17 @@ public class Bootstrap {
         bungee.getLogger().info("Enabled BungeeCord version " + bungee.getFullVersion());
         bungee.start();
 
-        while (bungee.isRunning) {
-            String line = bungee.getLineReader().readLine("> ");
-            if (line != null) {
-                if (!bungee.getPluginManager().dispatchCommand(ConsoleCommandSender.getInstance(), line)) {
-                    bungee.getConsole().sendMessage(ChatColor.RED + "Command not found");
+        try {
+            while (bungee.isRunning) {
+                String line = bungee.getLineReader().readLine("> ");
+                if (line != null) {
+                    if (!bungee.getPluginManager().dispatchCommand(ConsoleCommandSender.getInstance(), line)) {
+                        bungee.getConsole().sendMessage(ChatColor.RED + "Command not found");
+                    }
                 }
             }
+        } catch (UserInterruptException _) {
+            bungee.stop();
         }
     }
 }
