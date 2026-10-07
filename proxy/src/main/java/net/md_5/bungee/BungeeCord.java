@@ -133,7 +133,7 @@ public class BungeeCord extends ProxyServer {
     @Getter
     private final Logger logger;
     @Getter
-    private ConnectionThrottle connectionThrottle;
+    private @Nullable ConnectionThrottle connectionThrottle;
     @Getter
     private @Nullable ServerIcon serverIcon;
     @Getter
@@ -218,7 +218,9 @@ public class BungeeCord extends ProxyServer {
 
         profileCache.load();
         pluginManager.loadAndEnablePlugins();
-        connectionThrottle = new ConnectionThrottle(config.getThrottle());
+        if (config.getThrottle() > 0) {
+            connectionThrottle = new ConnectionThrottle(config.getThrottle());
+        }
         startListeners();
 
         saveThread.scheduleAtFixedRate(new TimerTask() {
@@ -233,6 +235,13 @@ public class BungeeCord extends ProxyServer {
 
     public void startListeners() {
         for (final ListenerInfo info : config.getListeners()) {
+            if (info.isProxyProtocol()) {
+                getLogger().log(Level.WARNING, "Using PROXY protocol for listener {0}, please ensure this listener is adequately firewalled.", info.getHost());
+                if (connectionThrottle != null) {
+                    getLogger().log(Level.WARNING, "Since PROXY protocol is in use, internal connection throttle has been disabled for listener {0}.", info.getHost());
+                }
+            }
+
             ChannelFutureListener listener = new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception {

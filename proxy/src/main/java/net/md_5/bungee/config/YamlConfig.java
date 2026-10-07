@@ -164,8 +164,9 @@ public class YamlConfig implements ConfigurationAdapter {
             String host = get("host", "0.0.0.0:25577", val);
             InetSocketAddress address = Util.getAddr(host);
             boolean setLocalAddress = get("bind_local_address", true, val);
+            boolean proxyProtocol = get("proxy_protocol", false, val);
 
-            ListenerInfo info = new ListenerInfo(address, motd, maxPlayers, maxSampleSize, defaultServer, fallbackServer, forceDefault, setLocalAddress);
+            ListenerInfo info = new ListenerInfo(address, motd, maxPlayers, maxSampleSize, defaultServer, fallbackServer, forceDefault, setLocalAddress, proxyProtocol);
             ret.add(info);
         }
 

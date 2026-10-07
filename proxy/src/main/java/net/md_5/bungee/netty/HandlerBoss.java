@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.legacyminecraft.bungeeposeidon.ping.ServerListPingHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.haproxy.HAProxyMessage;
 import io.netty.handler.timeout.ReadTimeoutException;
 import lombok.Getter;
 import net.md_5.bungee.api.ProxyServer;
@@ -67,6 +68,17 @@ public class HandlerBoss extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        if (msg instanceof HAProxyMessage proxyMessage) {
+            try {
+                if (proxyMessage.sourceAddress() != null) {
+                    this.channel.setClientAddress(new InetSocketAddress(proxyMessage.sourceAddress(), proxyMessage.sourcePort()));
+                }
+            } finally {
+                proxyMessage.release();
+            }
+            return;
+        }
+
         if (handler != null) {
             PacketWrapper packet = (PacketWrapper) msg;
             boolean sendPacket = true;

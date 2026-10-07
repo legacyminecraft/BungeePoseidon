@@ -19,9 +19,11 @@ import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.haproxy.HAProxyMessageDecoder;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.AttributeKey;
 import net.md_5.bungee.BungeeCord;
+import net.md_5.bungee.ConnectionThrottle;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.connection.InitialHandler;
 import net.md_5.bungee.protocol.Vanilla;
@@ -66,13 +68,23 @@ public class PipelineUtils {
 
     public static void setChannelInitializerHolders() {
         BungeeCord.getInstance().unsafe().setFrontendChannelInitializer(BungeeChannelInitializer.create(ch -> {
+            ListenerInfo listener = ch.attr(LISTENER).get();
+            ConnectionThrottle connectionThrottle = BungeeCord.getInstance().getConnectionThrottle();
             InetAddress address = ((InetSocketAddress) ch.remoteAddress()).getAddress();
-            if (!address.isLoopbackAddress() && BungeeCord.getInstance().getConnectionThrottle().throttle(address)) {
+
+            if (!listener.isProxyProtocol()
+                    && connectionThrottle != null
+                    && !address.isLoopbackAddress()
+                    && connectionThrottle.throttle(address)) {
                 return false;
             }
 
             BASE.accept(ch);
-            ch.pipeline().get(HandlerBoss.class).setHandler(new InitialHandler(BungeeCord.getInstance(), ch.attr(LISTENER).get()));
+            ch.pipeline().get(HandlerBoss.class).setHandler(new InitialHandler(BungeeCord.getInstance(), listener));
+            if (listener.isProxyProtocol()) {
+                ch.pipeline().addFirst(new HAProxyMessageDecoder());
+            }
+
             return true;
         }));
 

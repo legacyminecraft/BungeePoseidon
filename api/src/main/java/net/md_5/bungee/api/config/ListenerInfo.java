@@ -45,4 +45,8 @@ public class ListenerInfo {
      * Whether to set the local address when connecting to servers.
      */
     private final boolean setLocalAddress;
+    /**
+     * Whether to support HAProxy PROXY protocol.
+     */
+    private final boolean proxyProtocol;
 }
