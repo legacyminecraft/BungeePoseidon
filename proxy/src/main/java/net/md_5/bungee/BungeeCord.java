@@ -37,7 +37,7 @@ import net.md_5.bungee.command.CommandReload;
 import net.md_5.bungee.command.CommandSend;
 import net.md_5.bungee.command.CommandServer;
 import net.md_5.bungee.command.ConsoleCommandSender;
-import net.md_5.bungee.config.Configuration;
+import net.md_5.bungee.config.BungeeConfiguration;
 import net.md_5.bungee.config.YamlConfig;
 import net.md_5.bungee.log.BungeeLogger;
 import net.md_5.bungee.log.LoggingOutputStream;
@@ -93,7 +93,7 @@ public class BungeeCord extends ProxyServer {
     /**
      * Configuration.
      */
-    public final Configuration config = new Configuration();
+    public final BungeeConfiguration config = new BungeeConfiguration();
     /**
      * Localization bundle.
      */

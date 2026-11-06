@@ -10,6 +10,8 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = false)
 public class PacketFAPluginMessage extends DefinedPacket {
 
+    public static final String BUNGEE_CHANNEL = "BungeeCord";
+
     private String tag;
     private byte[] data;
 

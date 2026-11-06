@@ -119,7 +119,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection {
 
         if (isOnlineMode()) {
             try {
-                if (BungeeCord.getInstance().getSessionService().verifySession(getName(), getServerId(), getAddress().getAddress())) {
+                if (BungeeCord.getInstance().getSessionService().verifySession(getName(), getServerId())) {
                     finish();
                 } else {
                     disconnect("Not authenticated with Minecraft.net");

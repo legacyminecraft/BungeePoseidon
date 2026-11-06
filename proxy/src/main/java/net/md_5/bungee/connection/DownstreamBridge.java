@@ -1,5 +1,6 @@
 package net.md_5.bungee.connection;
 
+import com.google.common.io.ByteStreams;
 import lombok.RequiredArgsConstructor;
 import net.md_5.bungee.EntityMap;
 import net.md_5.bungee.ServerConnection;
@@ -15,6 +16,7 @@ import net.md_5.bungee.netty.PacketWrapper;
 import net.md_5.bungee.protocol.packet.PacketFAPluginMessage;
 import net.md_5.bungee.protocol.packet.PacketFFKick;
 
+import java.io.DataInput;
 import java.util.Objects;
 
 @RequiredArgsConstructor
@@ -59,9 +61,30 @@ public class DownstreamBridge extends PacketHandler {
 
     @Override
     public void handle(PacketFAPluginMessage pluginMessage) throws Exception {
+        DataInput in = ByteStreams.newDataInput(pluginMessage.getData());
         PluginMessageEvent event = new PluginMessageEvent(con.getServer(), con, pluginMessage.getTag(), pluginMessage.getData().clone());
 
         if (bungee.getPluginManager().callEvent(event).isCancelled()) {
+            throw new CancelSendSignal();
+        }
+
+        if (pluginMessage.getTag().equals(PacketFAPluginMessage.BUNGEE_CHANNEL)) {
+            String subChannel = in.readUTF();
+
+            // TODO: we should expand it further to match modern handling
+            // see: https://github.com/SpigotMC/BungeeCord/blob/55e1b0bbe776e4b3af6c572a2b3d43fb60a526b1/proxy/src/main/java/net/md_5/bungee/connection/DownstreamBridge.java#L323
+            switch (subChannel) {
+                case "Connect" -> {
+                    ServerInfo server = bungee.getServerInfo(in.readUTF());
+                    if (server != null) {
+                        con.connect(server);
+                    }
+                }
+                default ->
+                    bungee.getLogger().warning("Received unknown/unimplemented Bungee subchannel \"" + subChannel + "\"!");
+            }
+
+            // clients will die if you don't cancel the message, it has no need to go out anyway
             throw new CancelSendSignal();
         }
     }

@@ -19,7 +19,7 @@ import java.util.Map;
  * Core configuration for the proxy.
  */
 @Getter
-public class Configuration {
+public class BungeeConfiguration {
 
     /**
      * Time before users are disconnected due to no network activity.
