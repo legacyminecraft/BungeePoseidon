@@ -15,7 +15,7 @@
         <jline.version>4.4.8</jline.version>
         <kyori-ansi.version>1.1.1</kyori-ansi.version>
         <sqlite-jdbc.version>3.54.1.0</sqlite-jdbc.version>
-        <mysql-connector-j.version>26.7.0</mysql-connector-j.version>
+        <mysql-connector-j.version>26.10.0</mysql-connector-j.version>
         <postgresql.version>42.7.14</postgresql.version>
     </properties>
 
