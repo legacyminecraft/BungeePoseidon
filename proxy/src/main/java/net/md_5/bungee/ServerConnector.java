@@ -91,8 +91,6 @@ public class ServerConnector extends PacketHandler {
             user.setClientEntityId(login.getEntityId());
             user.setServerEntityId(login.getEntityId());
 
-            user.unsafe().sendPacket(login);
-
             if (user.getServer() != null) {
                 byte oppositeDimension = (byte) (login.getDimension() >= 0 ? -1 : 0);
                 user.unsafe().sendPacket(new Packet9Respawn(oppositeDimension));
@@ -101,6 +99,8 @@ public class ServerConnector extends PacketHandler {
                 // Remove from old servers
                 user.getServer().setObsolete(true);
                 user.getServer().disconnect("Quitting");
+            } else {
+                user.unsafe().sendPacket(login);
             }
 
             // TODO: Fix this?
