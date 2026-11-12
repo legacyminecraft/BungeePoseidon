@@ -42,10 +42,12 @@ public class BungeeConfiguration {
     private int throttle = 4000;
 
     private ProfileLookupMethod profileLookupMethod = ProfileLookupMethod.GET;
-    public boolean allowOfflineAccounts = true;
-    public boolean prefixOfflineUsernames = false;
-    public boolean useLegacyUuidGeneration = false;
-    public WrongNameCasingHandlingMode handleWrongNameCasing = WrongNameCasingHandlingMode.KEEP;
+    private boolean allowOfflineAccounts = true;
+    private boolean prefixOfflineUsernames = false;
+    private boolean useLegacyUuidGeneration = false;
+    private WrongNameCasingHandlingMode handleWrongNameCasing = WrongNameCasingHandlingMode.KEEP;
+    private boolean hybridAuth = true;
+    private boolean kickOnInvalidHybridSession = true;
 
     public void load() {
         ConfigurationAdapter adapter = ProxyServer.getInstance().getConfigurationAdapter();
@@ -64,6 +66,8 @@ public class BungeeConfiguration {
         prefixOfflineUsernames = adapter.getBoolean("prefix_offline_usernames", prefixOfflineUsernames);
         useLegacyUuidGeneration = adapter.getBoolean("use_legacy_uuid_generation", useLegacyUuidGeneration);
         handleWrongNameCasing = WrongNameCasingHandlingMode.valueOf(adapter.getString("handle_wrong_name_casing", handleWrongNameCasing.name()));
+        hybridAuth = adapter.getBoolean("hybrid_auth", hybridAuth);
+        kickOnInvalidHybridSession = adapter.getBoolean("kick_on_invalid_hybrid_session", kickOnInvalidHybridSession);
 
         Preconditions.checkArgument(listeners != null && !listeners.isEmpty(), "No listeners defined.");
 

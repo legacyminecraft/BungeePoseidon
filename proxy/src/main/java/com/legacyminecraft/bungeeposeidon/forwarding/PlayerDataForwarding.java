@@ -12,19 +12,22 @@ import java.security.GeneralSecurityException;
 
 public final class PlayerDataForwarding {
 
+    public static final int VERSION = 1;
     public static final String CHANNEL = "proxy:forward_player_data";
     public static final String MAC_ALGORITHM = "HmacSHA256";
 
     private PlayerDataForwarding() {
     }
 
-    public static byte[] createForwardingData(byte[] secret, InetAddress address, PlayerProfile profile) {
+    public static byte[] createForwardingData(byte[] secret, InetAddress address, PlayerProfile profile, boolean authenticated) {
         ByteArrayDataOutput output = ByteStreams.newDataOutput();
+        output.writeByte(VERSION);
         output.writeUTF(address.getHostAddress());
         output.writeLong(profile.getUniqueId().getMostSignificantBits());
         output.writeLong(profile.getUniqueId().getLeastSignificantBits());
         output.writeUTF(profile.getName());
         output.writeBoolean(profile.isOnlineProfile());
+        output.writeBoolean(authenticated);
         byte[] forwardedData = output.toByteArray();
 
         try {

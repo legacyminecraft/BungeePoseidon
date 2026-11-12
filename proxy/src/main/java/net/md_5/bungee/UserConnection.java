@@ -211,6 +211,11 @@ public final class UserConnection implements ProxiedPlayer {
     }
 
     @Override
+    public boolean isAuthenticated() {
+        return this.pendingConnection.isAuthenticated();
+    }
+
+    @Override
     public void sendData(String channel, byte[] data) {
         unsafe().sendPacket(new PacketFAPluginMessage(channel, data));
     }

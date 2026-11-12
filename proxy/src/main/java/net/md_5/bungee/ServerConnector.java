@@ -69,7 +69,8 @@ public class ServerConnector extends PacketHandler {
         byte[] payload = PlayerDataForwarding.createForwardingData(
                 secret.getBytes(StandardCharsets.UTF_8),
                 user.getAddress().getAddress(),
-                user.getProfile());
+                user.getProfile(),
+                user.isAuthenticated());
         ch.write(new PacketFAPluginMessage(PlayerDataForwarding.CHANNEL, payload));
     }
 

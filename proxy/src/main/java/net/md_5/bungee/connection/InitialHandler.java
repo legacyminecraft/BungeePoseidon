@@ -73,6 +73,11 @@ public class InitialHandler extends PacketHandler implements PendingConnection {
     @Getter
     @Setter
     private String serverId;
+    @Getter
+    @Setter
+    private volatile boolean hybridAuthRequested = false;
+    @Getter
+    private volatile boolean authenticated = false;
 
     public enum State {
         HANDSHAKE, LOGIN, FINISHED
@@ -117,20 +122,33 @@ public class InitialHandler extends PacketHandler implements PendingConnection {
             return;
         }
 
-        if (isOnlineMode()) {
+        // Hybrid auth: offline mode proxies still verify clients that announced a session in the handshake
+        boolean hybrid = !isOnlineMode() && isHybridAuthRequested();
+        if (isOnlineMode() || hybrid) {
+            boolean kickOnFailure = isOnlineMode() || BungeeCord.getInstance().config.isKickOnInvalidHybridSession();
             try {
                 if (BungeeCord.getInstance().getSessionService().verifySession(getName(), getServerId())) {
-                    finish();
+                    this.authenticated = true;
+                    if (hybrid) {
+                        bungee.getLogger().log(Level.INFO, "{0} authenticated with the session server (hybrid auth)", getName());
+                    }
                 } else {
-                    disconnect("Not authenticated with Minecraft.net");
+                    bungee.getLogger().log(Level.INFO, "{0} tried to login with an invalid session", getName());
+                    if (kickOnFailure) {
+                        disconnect("Not authenticated with Minecraft.net");
+                        return;
+                    }
                 }
             } catch (ServiceClientException e) {
-                disconnect(bungee.getTranslation("mojang_fail"));
                 bungee.getLogger().log(Level.SEVERE, "Error authenticating " + getName() + " with minecraft.net", e);
+                if (kickOnFailure) {
+                    disconnect(bungee.getTranslation("mojang_fail"));
+                    return;
+                }
             }
-        } else {
-            finish();
         }
+
+        finish();
     }
 
     @Override
@@ -140,7 +158,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection {
         bungee.getLogger().log(Level.INFO, "{0} has connected", this);
 
         String name = handshake.getUsername();
-        // Strip Glass Networking flag from handshake username
+        // Strip handshake flags from handshake username
         if (name.contains(";")) {
             name = name.split(";")[0];
         }
@@ -226,6 +244,36 @@ public class InitialHandler extends PacketHandler implements PendingConnection {
     @Override
     public int getVersion() {
         return (login == null) ? -1 : login.getEntityId();
+    }
+
+    @Override
+    public long getHandshakeFlags() {
+        if (this.handshake == null) {
+            return 0L;
+        }
+
+        String[] tokens = this.handshake.getUsername().split(";");
+        // tokens[0] is the username; the first token after it that is a base 36 mask of at most 12 digits (62 bits) is the flags.
+        // Longer named tokens that other clients append are never read as a mask
+        if (tokens.length != 2) {
+            return 0L;
+        }
+
+        String mask = tokens[1];
+        if (mask.isEmpty() || mask.length() > 12) {
+            return 0L;
+        }
+
+        try {
+            return Long.parseLong(mask, 36);
+        } catch (NumberFormatException e) {
+            return 0L;
+        }
+    }
+
+    @Override
+    public boolean hasHandshakeFlag(int bit) {
+        return bit >= 0 && bit < 62 && (getHandshakeFlags() & (1L << bit)) != 0;
     }
 
     @Override
