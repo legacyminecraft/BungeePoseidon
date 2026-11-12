@@ -12,7 +12,7 @@
     <packaging>jar</packaging>
 
     <properties>
-        <jline.version>4.4.8</jline.version>
+        <jline.version>4.5.0</jline.version>
         <kyori-ansi.version>1.1.1</kyori-ansi.version>
         <sqlite-jdbc.version>3.54.1.0</sqlite-jdbc.version>
         <mysql-connector-j.version>26.10.0</mysql-connector-j.version>
